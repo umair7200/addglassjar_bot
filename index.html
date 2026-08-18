@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src='//libtl.com/sdk.js' data-zone='11602627' data-sdk='show_11602627'></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Glass Jar Faucet</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="./style.css">
+
+    <!-- MONETAG SMART TAG (Replace YOUR_ZONE_ID) -->
+    <script src="https://alwingulla.com/88/pfe/current/tag.min.js?z=YOUR_ZONE_ID" async data-cfasync="false"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Glass Jar Faucet</h1>
+            <div id="multiplier-badge">Multiplier: <span id="multiplier-val">x1</span></div>
+        </header>
+
+        <main>
+            <div class="jar-container">
+                <div class="jar">
+                    <div id="water" class="water"></div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <span class="label">Pending</span>
+                    <span id="pending-val" class="value">0</span>
+                    <span id="pending-pkr" class="sub-label">Rs. 0.00</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Balance</span>
+                    <span id="balance-val" class="value">Rs. 0.00</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <p class="revenue-note">You earn 30% of ad revenue!</p>
+                <button id="btn-claim" class="btn-primary">Single Claim (Watch Ad)</button>
+                <div class="auto-row">
+                    <button id="btn-auto-5" class="btn-secondary">Auto x5</button>
+                    <button id="btn-auto-10" class="btn-tertiary">Auto x10</button>
+                </div>
+            </div>
+
+            <div id="withdrawal-section" class="card hidden">
+                <h3>Withdraw Rewards</h3>
+                <p class="small">Threshold: Rs. 150.00</p>
+                <p class="note">Distributed 15th-20th monthly.</p>
+
+                <input type="text" id="payout-name" placeholder="Full Name">
+                <div class="method-toggle">
+                    <button class="chip active" data-method="Easypaisa">Easypaisa</button>
+                    <button class="chip" data-method="JazzCash">JazzCash</button>
+                </div>
+                <input type="text" id="payout-acc" placeholder="Account Number">
+
+                <button id="btn-withdraw" class="btn-payout" disabled>Request Payout</button>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
