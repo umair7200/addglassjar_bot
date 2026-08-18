@@ -56,13 +56,13 @@ async function initApp() {
         const userCred = await signInAnonymously(auth);
         state.uid = userCred.user.uid;
 
-        // Try to use Telegram User ID if available
         const tgUser = tg.initDataUnsafe?.user;
         const docId = tgUser ? `tg_${tgUser.id}` : state.uid;
 
         await loadUserData(docId);
         startPassiveAccumulation(docId);
         updateUI();
+        initInAppAds();
     } catch (e) {
         console.error("Firebase Auth Error", e);
         tg.showAlert("Login failed. Check internet.");
@@ -119,51 +119,68 @@ function updateUI() {
     const name = document.getElementById('payout-name').value;
     const acc = document.getElementById('payout-acc').value;
     btnWithdraw.disabled = state.balance < MIN_WITHDRAWAL || !name || !acc;
+    btnWithdraw.innerText = `REQUEST Rs. ${state.balance.toFixed(2)}`;
 }
 
 // --- ACTIONS ---
 document.getElementById('btn-claim').addEventListener('click', () => {
+    tg.HapticFeedback.impactOccurred('medium');
     showAd(() => claim(1));
 });
 
 document.getElementById('btn-auto-5').addEventListener('click', () => {
-    showAdSequence(5);
-});
-
-document.getElementById('btn-auto-10').addEventListener('click', () => {
-    showAdSequence(10);
-});
-
-function showAdSequence(count) {
-    tg.showConfirm(`Watch ${count} ads to get 30% revenue share (x${count} multiplier)?`, async (ok) => {
+    tg.showConfirm("Watch 5 ads for x5 multiplier?", (ok) => {
         if (ok) {
             let shown = 0;
             const loop = () => {
-                showAd(async () => {
+                showAd(() => {
                     shown++;
                     state.multiplier = shown;
-                    if (shown < count) {
-                        tg.showAlert(`Ad ${shown}/${count} watched!`, loop);
+                    updateUI();
+                    if (shown < 5) {
+                        loop();
                     } else {
-                        await claim(count);
+                        claim(5);
                     }
                 });
             };
             loop();
         }
     });
-}
+});
+
+document.getElementById('btn-auto-10').addEventListener('click', () => {
+    tg.showConfirm("Watch 10 ads for x10 multiplier?", (ok) => {
+        if (ok) {
+            let shown = 0;
+            const loop = () => {
+                showAd(() => {
+                    shown++;
+                    state.multiplier = shown;
+                    updateUI();
+                    if (shown < 10) {
+                        loop();
+                    } else {
+                        claim(10);
+                    }
+                });
+            };
+            loop();
+        }
+    });
+});
 
 function showAd(callback) {
     if (typeof window.show_11602627 === 'function') {
         window.show_11602627().then(() => {
+            tg.showAlert('You have seen an ad!');
             callback();
         }).catch((e) => {
             console.error("Ad error", e);
-            tg.showAlert("Ad failed to show. Try again.");
+            tg.showAlert("Ad failed or was closed early.");
         });
     } else {
-        tg.showAlert("Ad SDK not ready. Please wait a few seconds.");
+        tg.showAlert("Ad engine starting... please wait.");
     }
 }
 
@@ -177,6 +194,7 @@ async function claim(adCount) {
     const userRef = doc(db, "users", docId);
 
     try {
+        tg.HapticFeedback.notificationOccurred('success');
         await updateDoc(userRef, {
             balance: increment(total),
             pendingRewards: 0,
@@ -196,6 +214,7 @@ async function claim(adCount) {
 // --- WITHDRAWAL LOGIC ---
 document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
+        tg.HapticFeedback.selectionChanged();
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         e.target.classList.add('active');
         state.method = e.target.dataset.method;
@@ -208,7 +227,7 @@ document.getElementById('btn-withdraw').addEventListener('click', async () => {
     const amount = state.balance;
 
     try {
-        // 1. Save request to Firestore
+        tg.HapticFeedback.impactOccurred('heavy');
         await addDoc(collection(db, "withdrawals"), {
             uid: state.uid,
             tgId: tg.initDataUnsafe?.user?.id || null,
@@ -220,7 +239,6 @@ document.getElementById('btn-withdraw').addEventListener('click', async () => {
             timestamp: serverTimestamp()
         });
 
-        // 2. Trigger Email Intent
         const emailBody = `Withdrawal Request:\nName: ${name}\nAmount: Rs. ${amount.toFixed(2)}\nMethod: ${state.method}\nAccount: ${acc}`;
         const mailto = `mailto:mockingjay1721@gmail.com?subject=Withdrawal&body=${encodeURIComponent(emailBody)}`;
         tg.openLink(mailto);
